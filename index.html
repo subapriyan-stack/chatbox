@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ChatGPT • AI Assistant</title>
+  <meta name="description" content="A modern, high-performance ChatGPT-style AI chat interface powered by n8n workflow and OpenRouter LLM.">
+  
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2310a37f'><path d='M12 2a10 10 0 0 0-10 10c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.1-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2z'/></svg>">
+</head>
+<body class="theme-dark">
+  <div id="app" class="app-layout">
+    
+    <!-- Mobile Sidebar Backdrop Overlay -->
+    <div id="sidebarBackdrop" class="sidebar-backdrop"></div>
+
+    <!-- Collapsible Sidebar -->
+    <aside id="sidebar" class="sidebar">
+      <div class="sidebar-header">
+        <button id="btnNewChat" class="btn-new-chat" title="Start new conversation (Ctrl+Shift+O)">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          <span>New chat</span>
+        </button>
+
+        <button id="btnSidebarClose" class="btn-icon-ghost" title="Close sidebar" aria-label="Close sidebar">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="9" y1="3" x2="9" y2="21"></line>
+            <path d="m14 9-3 3 3 3"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Search in conversations -->
+      <div class="sidebar-search">
+        <svg class="icon-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input type="text" id="chatSearchInput" placeholder="Search chats..." autocomplete="off">
+        <button id="btnSearchClear" class="btn-search-clear" style="display: none;">&times;</button>
+      </div>
+
+      <!-- Chat History List -->
+      <div class="sidebar-history-container">
+        <div class="history-section-title">Recent Conversations</div>
+        <div id="chatHistoryList" class="chat-history-list">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+
+      <!-- Sidebar Footer / User Profile & Controls -->
+      <div class="sidebar-footer">
+        <div class="user-profile-badge">
+          <div class="user-avatar-mini">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+            </svg>
+          </div>
+          <div class="user-info-text">
+            <span class="user-name">User Account</span>
+            <span class="user-status-text">Connected to n8n</span>
+          </div>
+        </div>
+
+        <div class="footer-actions">
+          <button id="btnOpenSettings" class="btn-icon-ghost" title="Settings">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="3"></circle>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+            </svg>
+          </button>
+          
+          <button id="btnClearAllChats" class="btn-icon-ghost" title="Clear all history">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Container -->
+    <main class="main-content">
+      
+      <!-- Top Navigation Bar -->
+      <header class="chat-header">
+        <div class="header-left">
+          <button id="btnSidebarOpen" class="btn-icon-ghost" title="Open sidebar" aria-label="Open sidebar">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="9" y1="3" x2="9" y2="21"></line>
+              <path d="m11 9 3 3-3 3"/>
+            </svg>
+          </button>
+
+          <!-- Model Selector Pill -->
+          <div class="model-badge-container">
+            <div class="model-badge" id="modelBadge">
+              <div class="badge-dot pulse-dot"></div>
+              <span class="model-name" id="displayModelName">AI Assistant</span>
+              <span class="model-provider">n8n • OpenRouter</span>
+              <svg class="icon-down" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </div>
+            
+            <!-- Quick Model Info Dropdown -->
+            <div id="modelDropdown" class="model-dropdown-menu">
+              <div class="dropdown-header">Connected Backend</div>
+              <div class="dropdown-item active">
+                <div class="dropdown-item-title">n8n Webhook Pipeline</div>
+                <div class="dropdown-item-sub" id="dropdownWebhookUrl">https://james1233387.app.n8n.cloud/webhook/chat</div>
+              </div>
+              <div class="dropdown-divider"></div>
+              <div class="dropdown-item" id="btnTestWebhookInDropdown">
+                <svg class="icon-mini" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                <span>Ping & Test Webhook Connection</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="header-right">
+          <!-- Audio Toggle -->
+          <button id="btnSoundToggle" class="btn-icon-ghost" title="Sound effects: On" aria-label="Toggle sound">
+            <svg id="iconSoundOn" class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+              <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+            </svg>
+            <svg id="iconSoundOff" class="icon" style="display:none;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+              <line x1="23" y1="9" x2="17" y2="15"></line>
+              <line x1="17" y1="9" x2="23" y2="15"></line>
+            </svg>
+          </button>
+
+          <!-- Export Chat -->
+          <button id="btnExportChat" class="btn-icon-ghost" title="Export conversation (Markdown / JSON)">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+          </button>
+
+          <!-- Theme Toggle -->
+          <button id="btnThemeToggle" class="btn-icon-ghost" title="Switch Theme (Dark / Light / OLED)">
+            <svg id="iconThemeMoon" class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+            <svg id="iconThemeSun" class="icon" style="display:none;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="5"></circle>
+              <line x1="12" y1="1" x2="12" y2="3"></line>
+              <line x1="12" y1="21" x2="12" y2="23"></line>
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+              <line x1="1" y1="12" x2="3" y2="12"></line>
+              <line x1="21" y1="12" x2="23" y2="12"></line>
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <!-- Chat Scrollable Messages Container -->
+      <div id="chatContainer" class="chat-container">
+        
+        <!-- Welcome Hero View (shown when conversation is empty) -->
+        <div id="welcomeHero" class="welcome-hero">
+          <div class="hero-icon-container">
+            <div class="hero-logo-halo"></div>
+            <div class="hero-logo">
+              <!-- Modern OpenAI / AI Spark icon -->
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2a10 10 0 0 1 10 10c0 4.4-2.8 8.2-6.8 9.5-.5.1-.7-.2-.7-.5v-1.7c0-.8-.3-1.4-.7-1.7 2.4-.3 4.9-1.2 4.9-5.4 0-1.2-.4-2.2-1.1-3 .1-.3.5-1.4-.1-2.9 0 0-.9-.3-3 1.1-.9-.2-1.8-.4-2.8-.4s-1.9.2-2.8.4c-2.1-1.4-3-1.1-3-1.1-.6 1.5-.2 2.6-.1 2.9-.7.8-1.1 1.8-1.1 3 0 4.2 2.5 5.1 4.9 5.4-.3.3-.6.8-.7 1.5-.6.3-2.1.7-3-.9-.6-1-1.7-1.1-1.7-1.1-1.1 0-.1.7-.1.7.7.4 1.2 1.8 1.2 1.8 1 3 4.2 2.1 4.2 2.1v2.1c0 .3-.2.6-.7.5C4.8 20.2 2 16.4 2 12A10 10 0 0 1 12 2z"/>
+              </svg>
+            </div>
+          </div>
+
+          <h1 class="hero-title">How can I assist you today?</h1>
+          <p class="hero-subtitle">Connected to your live n8n workflow &amp; OpenRouter LLM. Ask any banking question, request documents, or explore services.</p>
+
+          <!-- Prompt Suggestion Cards Grid -->
+          <div class="suggestions-grid">
+            <button class="suggestion-card" data-prompt="What are the documents and eligibility criteria required for an ICICI Personal Loan?">
+              <div class="card-icon">💼</div>
+              <div class="card-content">
+                <span class="card-title">Personal Loan</span>
+                <span class="card-desc">Check eligibility, interest rates &amp; required documents</span>
+              </div>
+            </button>
+
+            <button class="suggestion-card" data-prompt="How do I apply for an ICICI Credit Card, and what are the best benefits available?">
+              <div class="card-icon">💳</div>
+              <div class="card-content">
+                <span class="card-title">Credit Cards</span>
+                <span class="card-desc">Compare cards, reward points &amp; online application</span>
+              </div>
+            </button>
+
+            <button class="suggestion-card" data-prompt="Explain the step-by-step process to open a new Savings or 3-in-1 account online.">
+              <div class="card-icon">🏦</div>
+              <div class="card-content">
+                <span class="card-title">Open Bank Account</span>
+                <span class="card-desc">Online video KYC process &amp; savings account features</span>
+              </div>
+            </button>
+
+            <button class="suggestion-card" data-prompt="What is the difference between offline branch application and online iMobile application?">
+              <div class="card-icon">📱</div>
+              <div class="card-content">
+                <span class="card-title">Online vs Branch</span>
+                <span class="card-desc">Steps, tracking status &amp; digital banking tips</span>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Chat Stream (Message items rendered here) -->
+        <div id="messagesList" class="messages-list"></div>
+
+        <!-- Typing / Waiting Indicator -->
+        <div id="typingIndicator" class="message-row assistant typing-row" style="display: none;">
+          <div class="avatar-box ai-avatar">
+            <div class="ai-spark-icon"></div>
+          </div>
+          <div class="message-bubble typing-bubble">
+            <div class="typing-dots">
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+            <span class="typing-status-label">Thinking...</span>
+          </div>
+        </div>
+
+        <!-- Auto-scroll anchor -->
+        <div id="scrollAnchor" class="scroll-anchor"></div>
+      </div>
+
+      <!-- Floating Scroll to Bottom Button -->
+      <button id="btnScrollToBottom" class="btn-scroll-bottom" title="Scroll to bottom" aria-label="Scroll to bottom">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+      </button>
+
+      <!-- Bottom Chat Input Section -->
+      <div class="chat-input-wrapper">
+        <div class="chat-input-container">
+          
+          <!-- Attachment Preview Bar (shown if file attached) -->
+          <div id="attachmentPreview" class="attachment-preview-bar" style="display: none;">
+            <div class="attachment-chip">
+              <svg class="chip-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+              </svg>
+              <span id="attachmentFileName" class="chip-text">file.txt</span>
+              <button id="btnRemoveAttachment" class="btn-chip-remove" title="Remove">&times;</button>
+            </div>
+          </div>
+
+          <!-- Input Bar Form -->
+          <form id="chatForm" class="chat-form">
+            
+            <!-- Attachment File Input (hidden) -->
+            <input type="file" id="fileInput" style="display:none;" accept=".txt,.pdf,.doc,.docx,.png,.jpg,.jpeg">
+            
+            <button type="button" id="btnAttach" class="btn-input-icon" title="Attach context file or prompt">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
+              </svg>
+            </button>
+
+            <!-- Textarea for prompt -->
+            <textarea
+              id="messageInput"
+              rows="1"
+              placeholder="Ask anything about banking, loans, cards..."
+              autocomplete="off"
+              autofocus
+            ></textarea>
+
+            <div class="input-actions-right">
+              <!-- Voice Recognition Microphone Button -->
+              <button type="button" id="btnVoiceInput" class="btn-input-icon" title="Voice dictation (Click to speak)">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                  <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                  <line x1="12" y1="19" x2="12" y2="23"></line>
+                  <line x1="8" y1="23" x2="16" y2="23"></line>
+                </svg>
+              </button>
+
+              <!-- Send / Stop Generation Button -->
+              <button type="submit" id="btnSend" class="btn-send" title="Send message (Enter)" disabled>
+                <!-- Send Arrow Icon -->
+                <svg id="iconSend" class="icon-send-arrow" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                </svg>
+                <!-- Stop Icon (shown when generating) -->
+                <svg id="iconStop" class="icon-stop-square" style="display:none;" viewBox="0 0 24 24" fill="currentColor">
+                  <rect x="6" y="6" width="12" height="12" rx="2" ry="2"/>
+                </svg>
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <div class="chat-disclaimer">
+          AI can provide general guidance. Never share sensitive credentials like OTP, CVV, or passwords.
+        </div>
+      </div>
+    </main>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="modal-overlay" style="display: none;">
+      <div class="modal-card">
+        <div class="modal-header">
+          <div class="modal-title-box">
+            <svg class="modal-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="3"></circle>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+            </svg>
+            <h2>Configuration &amp; Settings</h2>
+          </div>
+          <button id="btnCloseSettings" class="btn-modal-close" aria-label="Close settings">&times;</button>
+        </div>
+
+        <div class="modal-body">
+          <!-- Webhook URL Setting -->
+          <div class="setting-item">
+            <label for="inputWebhookUrl">n8n Production Webhook URL</label>
+            <div class="input-with-button">
+              <input type="url" id="inputWebhookUrl" placeholder="https://james1233387.app.n8n.cloud/webhook/chat">
+              <button type="button" id="btnTestWebhookInSettings" class="btn-secondary">Test Ping</button>
+            </div>
+            <span id="webhookTestResult" class="setting-hint">Connected to live n8n workflow</span>
+          </div>
+
+          <!-- Assistant Name -->
+          <div class="setting-item">
+            <label for="inputAssistantName">Assistant Display Name</label>
+            <input type="text" id="inputAssistantName" value="ICICI AI Assistant" placeholder="Assistant Name">
+          </div>
+
+          <!-- Theme Selection -->
+          <div class="setting-item">
+            <label>Interface Theme</label>
+            <div class="theme-options-grid">
+              <label class="theme-card-option">
+                <input type="radio" name="radioTheme" value="theme-dark" checked>
+                <div class="theme-preview dark-preview">
+                  <div class="dot-color"></div>
+                  <span>ChatGPT Dark</span>
+                </div>
+              </label>
+
+              <label class="theme-card-option">
+                <input type="radio" name="radioTheme" value="theme-midnight">
+                <div class="theme-preview midnight-preview">
+                  <div class="dot-color"></div>
+                  <span>OLED Midnight</span>
+                </div>
+              </label>
+
+              <label class="theme-card-option">
+                <input type="radio" name="radioTheme" value="theme-light">
+                <div class="theme-preview light-preview">
+                  <div class="dot-color"></div>
+                  <span>Clean Light</span>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <!-- Toggle: Stream Simulation -->
+          <div class="setting-item-row">
+            <div>
+              <div class="setting-row-title">Typewriter Streaming Animation</div>
+              <div class="setting-row-desc">Simulate word-by-word streaming effect like ChatGPT</div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="toggleStream" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <!-- Toggle: UI Audio Feedback -->
+          <div class="setting-item-row">
+            <div>
+              <div class="setting-row-title">UI Sound Effects</div>
+              <div class="setting-row-desc">Synthesized subtle chime when sending and receiving responses</div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="toggleAudio" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <!-- Reset / Clear Section -->
+          <div class="modal-danger-zone">
+            <div>
+              <strong>Clear Storage</strong>
+              <p>Erase conversation history and reset settings to default</p>
+            </div>
+            <button type="button" id="btnResetAll" class="btn-danger">Reset Everything</button>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" id="btnCancelSettings" class="btn-secondary">Cancel</button>
+          <button type="button" id="btnSaveSettings" class="btn-primary">Save Changes</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Export Modal -->
+    <div id="exportModal" class="modal-overlay" style="display: none;">
+      <div class="modal-card modal-card-sm">
+        <div class="modal-header">
+          <h2>Export Chat</h2>
+          <button id="btnCloseExport" class="btn-modal-close">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p class="export-subtitle">Choose format to download your current conversation:</p>
+          <div class="export-buttons-stack">
+            <button id="btnExportMarkdown" class="btn-export-option">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+              <div>
+                <strong>Markdown (.md)</strong>
+                <span>Formatted text with headings and code blocks</span>
+              </div>
+            </button>
+
+            <button id="btnExportJSON" class="btn-export-option">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+              <div>
+                <strong>JSON Data (.json)</strong>
+                <span>Complete conversation records and timestamps</span>
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toastContainer" class="toast-container"></div>
+
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
